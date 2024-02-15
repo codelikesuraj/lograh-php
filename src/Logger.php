@@ -93,7 +93,7 @@ class Logger
         return $json;
     }
 
-    public function sendReport(\Throwable $exception): void
+    public function reportException(\Throwable $exception): void
     {
         $ch = curl_init();
         $url = sprintf("%s%s/sendMessage", self::BOT_API, $this->botToken);
