@@ -2,13 +2,10 @@
     "name": "codelikesuraj/lograh-php",
     "description": "A light-weight logger that logs to Telegram.",
     "type": "library",
-    "require": {
-        "php": "^8.0"
-    },
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Codelikesuraj\\LograhPhp\\": "src/"
+            "Codelikesuraj\\LograhPHP\\": "src/"
         }
     },
     "authors": [
@@ -16,5 +13,9 @@
             "name": "Abdulbaki Suraj",
             "email": "codelikesuraj@gmail.com"
         }
-    ]
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=8.0"
+    }
 }
