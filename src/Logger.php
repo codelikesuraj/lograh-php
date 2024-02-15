@@ -59,7 +59,7 @@ class Logger
                 implode(', ', $stackPoint['args'])
             );
         }
-        $trace[] = '#' . ++$key . ' {main}';
+        $trace[] = '#' . (isset($key) ? ++$key : '0') . ' {main}';
 
         return $trace ?? [];
     }
