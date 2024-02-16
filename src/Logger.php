@@ -114,7 +114,7 @@ class Logger
     {
         $data = [
             'app' => $this->appName,
-            'timestamp' => date("Y-m-d H:i:s T O"),
+            'timestamp' => date(DATE_RFC2822),
             'message' => self::generateTextSummary($exception),
             'stack trace' => self::generateStackTrace($exception),
         ];
