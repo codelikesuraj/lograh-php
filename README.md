@@ -38,7 +38,7 @@ try {
     ...
 }
 ```
-### Sample response
+### Sample response message sent to Telegram
 ```json
 {
     "app": "unique_name_to_identify_your_app",
