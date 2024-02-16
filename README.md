@@ -42,7 +42,7 @@ try {
 ```json
 {
     "app": "unique_name_to_identify_your_app",
-    "timestamp": "####-##-## ##:##:## TMZ +####",
+    "timestamp": "0000-00-00 00:00:00 +0000",
     "message": "Uncaught exception: 'exception_name' with message 'exception_message' in \/path\/to\/folder\/file.php:#",
     "stack trace": [
         "#0 {main}"
