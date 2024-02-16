@@ -4,16 +4,19 @@
 
 LograhPHP sends your exceptions to Telegram chats, channels or groups.
 
+## Requirements
+- PHP 8.0 or above.
+- php_curl extension enabled.
+- A Telegram bot's access token and chat/channel/group id. Generate a Telegram bot with https://telegram.me/BotFather.
+
 ## Installation
-
-Install the latest version with
-
 ```bash
 $ composer require codelikesuraj/lograh-php
 ```
 
 ## Basic Usage
 
+### Sample code
 ```php
 <?php
 
@@ -22,8 +25,8 @@ use Codelikesuraj\LograhPHP\Logger;
 // initialize logger with your Telegram bot credentials
 $logger = new Logger(
     appName: "unique_name_to_identify_your_app",
-    botToken: "api_key_generad_from_your_bot",
-    chatId: "id_of_your_chat_or_channel_or_group"
+    botToken: "api_key_generated_from_your_telegram_bot",
+    chatId: "id_of_your_telegram_chat_or_channel_or_group"
 );
 
 try {
@@ -35,17 +38,19 @@ try {
     ...
 }
 ```
+### Sample response
+```json
+{
+    "app": "unique_name_to_identify_your_app",
+    "timestamp": "####-##-## ##:##:## TMZ +####",
+    "message": "Uncaught exception: 'exception_name' with message 'exception_message' in \/path\/to\/folder\/file.php:#",
+    "stack trace": [
+        "#0 {main}"
+    ]
+}
+```
+## Author
+Abdulbaki Suraj - <http://twitter.com/fliplikesuraj>
 
-## About
-
-### Requirements
-
-- LograhPHP works with PHP 8.0 or above.
-
-### Author
-
-Abdulbaki Suraj - <codelikesuraj> - <http://twitter.com/fliplikesuraj><br />
-
-### License
-
+## License
 LograhPHP is licensed under the MIT License.

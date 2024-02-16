@@ -6,27 +6,51 @@ namespace Codelikesuraj\LograhPHP;
 
 class Logger
 {
-    /** Telegram bot API */
+    /**
+     * Base url for the bot API
+     */ 
     private const BOT_API  = "https://api.telegram.org/bot";
 
-    /** Name of this app */
+    /**
+     * A unique name for the app/project
+     */
     private string $appName;
 
-    /** API key generate from telegram bot */
+    /**
+     * The API key generate from the telegram bot.
+     * Create a bot and get its access token with https://telegram.me/BotFather.
+     */
     private string $botToken;
 
-    /** chat_id of user or channel_id of group/channel */
+    /**
+     * Telegram chat_id of the user, channel or group
+     */
     private string $chatId;
 
-    /** disable audio alert on telegram */
+    /**
+     * Disable audio alerts on Telegram
+     */
     private bool $disableNotification;
 
-    /** disable web page preview for embedded links */
+    /**
+     * Disable web page preview for embedded links
+     */
     private bool $disableWebPagePreview;
 
-    /** number of retries */
+    /**
+     * Number of retries when sending exception
+     */
     private int $retries;
 
+    /**
+     * @param  string   $appName                Unique app for app/project
+     * @param  string   $botToken               Telegram bot access token
+     * @param  string   $chatId                 Telegram chat, channel or group id
+     * @param  bool     $disableNotification    Disable audio alerts on Telegram
+     * @param  bool     $disableWebPagePreview  Disable web page preview for embedded links
+     * @param  int      $disableWebPagePreview  Disable web page preview for embedded links
+     * @throws Exception If the curl extension is missing
+     */
     public function __construct(
         string $appName,
         string $botToken,
@@ -47,7 +71,10 @@ class Logger
         $this->retries = $retries;
     }
 
-    protected static function generateTraceLine(\Throwable $exception)
+    /**
+     * Generates an array for the stack trace
+     */
+    protected static function generateStackTrace(\Throwable $exception): array
     {
         foreach ($exception->getTrace() as $key => $stackPoint) {
             $trace[] = sprintf(
@@ -63,8 +90,10 @@ class Logger
 
         return $trace ?? [];
     }
-
-    protected static function generateTextSummary(\Throwable $exception)
+    /**
+     * Generates a text summary of the exception
+     */
+    protected static function generateTextSummary(\Throwable $exception): string
     {
         return sprintf(
             "Uncaught exception: '%s' with message '%s' in %s:%s",
@@ -77,13 +106,17 @@ class Logger
         );
     }
 
+    /**
+     * Generates a json summary of the exception including
+     * the text summary and stack trace
+     */
     public function generateJsonSummary(\Throwable $exception): string
     {
         $data = [
             'app' => $this->appName,
             'timestamp' => date("Y-m-d H:i:s T O"),
             'message' => self::generateTextSummary($exception),
-            'stack trace' => self::generateTraceLine($exception),
+            'stack trace' => self::generateStackTrace($exception),
         ];
 
         $json = "```json \n";
@@ -93,6 +126,9 @@ class Logger
         return $json;
     }
 
+    /**
+     * Send exception to telegram
+     */
     public function reportException(\Throwable $exception): void
     {
         $ch = curl_init();
