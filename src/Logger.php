@@ -78,12 +78,11 @@ class Logger
     {
         foreach ($exception->getTrace() as $key => $stackPoint) {
             $trace[] = sprintf(
-                "#%s %s(%s): %s(%s)",
+                "#%s %s(%s): %s()",
                 $key,
                 $stackPoint['file'],
                 $stackPoint['line'],
-                $stackPoint['function'],
-                implode(', ', $stackPoint['args'])
+                $stackPoint['function']
             );
         }
         $trace[] = '#' . (isset($key) ? ++$key : '0') . ' {main}';
