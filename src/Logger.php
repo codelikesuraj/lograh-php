@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Codelikesuraj\LograhPHP;
 
+use Exception;
+use RuntimeException;
+use Throwable;
+
 class Logger
 {
     /**
      * Base url for the bot API
-     */ 
+     */
     private const BOT_API  = "https://api.telegram.org/bot";
 
     /**
@@ -38,17 +42,22 @@ class Logger
     private bool $disableWebPagePreview;
 
     /**
+     * Array of exceptions to ignore
+     */
+    private array $ignoredExceptions = [];
+
+    /**
      * Number of retries when sending exception
      */
     private int $retries;
 
     /**
-     * @param  string   $appName                Unique app for app/project
-     * @param  string   $botToken               Telegram bot access token
-     * @param  string   $chatId                 Telegram chat, channel or group id
-     * @param  bool     $disableNotification    Disable audio alerts on Telegram
-     * @param  bool     $disableWebPagePreview  Disable web page preview for embedded links
-     * @param  int      $disableWebPagePreview  Disable web page preview for embedded links
+     * @param  string    $appName                Unique app for app/project
+     * @param  string    $botToken               Telegram bot access token
+     * @param  string    $chatId                 Telegram chat, channel or group id
+     * @param  bool      $disableNotification    Disable audio alerts on Telegram
+     * @param  bool      $disableWebPagePreview  Disable web page preview for embedded links
+     * @param  int       $disableWebPagePreview  Disable web page preview for embedded links
      * @throws Exception If the curl extension is missing
      */
     public function __construct(
@@ -60,7 +69,7 @@ class Logger
         int $retries = 3
     ) {
         if (!extension_loaded('curl')) {
-            throw new \Exception("Curl extension is missing");
+            throw new Exception("Curl extension is missing");
         }
 
         $this->appName = $appName;
@@ -72,9 +81,34 @@ class Logger
     }
 
     /**
-     * Generates an array for the stack trace
+     * Sets exceptions to be ignored
+     * 
+     * @param  array     $exceptions
+     * @return self
+     * @throws Exception If any class is not defined
      */
-    protected static function generateStackTrace(\Throwable $exception): array
+    public function ignore(array $exceptions): self
+    {
+        foreach ($exceptions as $exception) {
+            if (!class_exists($exception, false)) {
+                throw new Exception("Class not defined");
+            }
+
+            if (!in_array($exception, $this->ignoredExceptions)) {
+                $this->ignoredExceptions[] = $exception;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Generates an array for the stack trace
+     * 
+     * @param  Throwable $exception
+     * @return array
+     */
+    protected static function generateStackTrace(Throwable $exception): array
     {
         foreach ($exception->getTrace() as $key => $stackPoint) {
             $trace[] = sprintf(
@@ -87,12 +121,16 @@ class Logger
         }
         $trace[] = '#' . (isset($key) ? ++$key : '0') . ' {main}';
 
-        return $trace ?? [];
+        return $trace;
     }
+
     /**
      * Generates a text summary of the exception
+     * 
+     * @param  Throwable $exception
+     * @return string
      */
-    protected static function generateTextSummary(\Throwable $exception): string
+    protected static function generateTextSummary(Throwable $exception): string
     {
         return sprintf(
             "Uncaught exception: '%s' with message '%s' in %s:%s",
@@ -108,8 +146,11 @@ class Logger
     /**
      * Generates a json summary of the exception including
      * the text summary and stack trace
+     * 
+     * @param  Throwable $exception
+     * @return string
      */
-    public function generateJsonSummary(\Throwable $exception): string
+    public function generateJsonSummary(Throwable $exception): string
     {
         $data = [
             'app' => $this->appName,
@@ -126,10 +167,18 @@ class Logger
     }
 
     /**
-     * Send exception to telegram
+     * Sends the caught exception to Telegram
+     * 
+     * @param  Throwable        $exception
+     * @return void
+     * @throws RuntimeException For any CURL or Telegram API error
      */
-    public function reportException(\Throwable $exception): void
+    public function report(Throwable $exception): void
     {
+        if (in_array(get_class($exception), $this->ignoredExceptions)) {
+            return;
+        }
+
         $ch = curl_init();
         $url = sprintf("%s%s/sendMessage", self::BOT_API, $this->botToken);
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -154,17 +203,17 @@ class Logger
             }
 
             if (!$this->retries--) {
-                throw new \RuntimeException(sprintf("Curl error (code %d): %s", curl_errno($ch), curl_error($ch)));
+                throw new RuntimeException(sprintf("Curl error (code %d): %s", curl_errno($ch), curl_error($ch)));
             }
         }
 
         if (!is_string($resp)) {
-            throw new \RuntimeException('Telegram API error - Description: Unrecognized response');
+            throw new RuntimeException('Telegram API error - Description: Unrecognized response');
         }
 
         $result = json_decode($resp, true);
         if ($result['ok'] === false) {
-            throw new \RuntimeException(sprintf("Telegram API error - Description: %s", $result['description']));
+            throw new RuntimeException(sprintf("Telegram API error - Description: %s", $result['description']));
         }
     }
 }
