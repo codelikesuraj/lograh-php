@@ -33,7 +33,12 @@ try {
     // code that may generate an exception
     ...
 } catch (\Throwable $exception) {
-    $logger->reportException($exception);
+    // optional list of exceptions to be ignored
+    $logger->ignore([ExceptionA::class, ExceptionB::class]);
+    
+    // send exception to Telegram
+    $logger->report($exception);
+    
     // further processing
     ...
 }
