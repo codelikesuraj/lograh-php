@@ -36,14 +36,30 @@ try {
     // optional list of exceptions to be ignored
     $logger->ignore([ExceptionA::class, ExceptionB::class]);
     
-    // send exception to Telegram
-    $logger->report($exception);
+    // send exception to Telegram using any
+    // of the following methods
+    $logger->reportAsText($exception);
+    $logger->reportAsJson($exception);
+    $logger->reportAsJsonWithStackTrace($exception);
     
     // further processing
     ...
 }
 ```
 ### Sample response message sent to Telegram
+#### Report as TEXT
+app: unique_name_to_identify_your_app<br>
+timestamp: 0000-00-00 00:00:00 +0000<br>
+"summary": Uncaught exception: 'exception_name' with message 'exception_message' in \/path\/to\/folder\/file.php:#
+#### Report as JSON
+```json
+{
+    "app": "unique_name_to_identify_your_app",
+    "timestamp": "0000-00-00 00:00:00 +0000",
+    "summary": "Uncaught exception: 'exception_name' with message 'exception_message' in \/path\/to\/folder\/file.php:#",
+}
+```
+#### Report as JSON WITH STACK TRACE
 ```json
 {
     "app": "unique_name_to_identify_your_app",
