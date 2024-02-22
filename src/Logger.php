@@ -144,36 +144,85 @@ class Logger
     }
 
     /**
-     * Generates a json summary of the exception including
-     * the text summary and stack trace
+     * Generates a text report of the exception including
+     * only the text summary
      * 
      * @param  Throwable $exception
      * @return string
      */
-    public function generateJsonSummary(Throwable $exception): string
+    public function generateTextReport(Throwable $exception): string
     {
-        $data = [
-            'app' => $this->appName,
-            'timestamp' => date(DATE_RFC2822),
-            'summary' => self::generateTextSummary($exception),
-            'stack trace' => self::generateStackTrace($exception),
-        ];
-
-        $json = "```json \n";
-        $json .= json_encode($data, JSON_PRETTY_PRINT);
-        $json .= "\n```";
-
-        return $json;
+        return sprintf(
+            "app: %s\ntimestamp: %s\nsummary: %s",
+            $this->appName,
+            date(DATE_RFC2822),
+            self::generateTextSummary($exception)
+        );
     }
 
     /**
-     * Sends the caught exception to Telegram
+     * Generates a json report of the exception including
+     * the text summary and with/without the stack trace
+     * 
+     * @param  Throwable $exception
+     * @return string
+     */
+    public function generateJsonReport(Throwable $exception, bool $withStackTrace = false): string
+    {
+        $report = [
+            'app' => $this->appName,
+            'timestamp' => date(DATE_RFC2822),
+            'summary' => self::generateTextSummary($exception)
+        ];
+
+        if ($withStackTrace) {
+            $report['stack trace'] = self::generateStackTrace($exception);
+        }
+
+        return sprintf("```json \n%s\n```", json_encode($report, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Report exception as text
+     * 
+     * @param  Throwable $exception
+     * @return void
+     */
+    public function reportAsText(Throwable $exception): void
+    {
+        self::report($exception);
+    }
+
+    /**
+     * Report exception as json without the stack trace
+     * 
+     * @param  Throwable $exception
+     * @return void
+     */
+    public function reportAsJson(Throwable $exception): void
+    {
+        self::report($exception, true);
+    }
+
+    /**
+     * Report exception as json with the stack trace included
+     * 
+     * @param  Throwable $exception
+     * @return void
+     */
+    public function reportAsJsonWithStackTrace(Throwable $exception): void
+    {
+        self::report($exception, true, true);
+    }
+
+    /**
+     * Sends the exception to Telegram
      * 
      * @param  Throwable        $exception
      * @return void
      * @throws RuntimeException For any CURL or Telegram API error
      */
-    public function report(Throwable $exception): void
+    protected function report(Throwable $exception, bool $asJson = false, bool $withStackTrace = false): void
     {
         if (in_array(get_class($exception), $this->ignoredExceptions)) {
             return;
@@ -185,12 +234,12 @@ class Logger
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type' => 'application/json'
+            'Content-Type' => $asJson ? 'application/json' : 'application/x-www-form-urlencoded'
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-            'text' => self::generateJsonSummary($exception, ['appName' => $this->appName], ['hi' => 'ad']),
+            'text' => $asJson ? self::generateJsonReport($exception, $withStackTrace) : self::generateTextReport($exception),
             'chat_id' => $this->chatId,
-            'parse_mode' => 'markdown',
+            'parse_mode' => $asJson ? 'markdownv2' : null,
             'disable_web_page_preview' => $this->disableWebPagePreview,
             'disable_notification' => $this->disableNotification,
         ]));
