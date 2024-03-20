@@ -1,6 +1,6 @@
 # LograhPHP - Send exceptions from PHP to Telegram
 
-[![Total Downloads](https://img.shields.io/packagist/dt/codelikesuraj/lograh-php.svg)](https://packagist.org/packages/codelikesuraj/lograh-php)
+
 
 LograhPHP sends your exceptions to Telegram chats, channels or groups.
 
